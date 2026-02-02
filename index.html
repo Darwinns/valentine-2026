@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Be My Valentine?</title>
+  <style>
+    :root {
+      --primary: #ff4d6d;
+      --secondary: #ffb3c1;
+      --bg: #fff0f3;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background-color: var(--bg);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      overflow: hidden;
+    }
+
+    #confettiCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .card {
+      background: white;
+      padding: 2rem;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      text-align: center;
+      z-index: 5;
+      width: min(400px, 90vw);
+      animation: pop 0.5s ease-out;
+    }
+
+    .art {
+      width: 100%;
+      height: auto;
+      margin-bottom: 1rem;
+    }
+
+    .result {
+      display: none;
+    }
+
+    .result h2 {
+      font-size: clamp(30px, 4.5vw, 46px);
+      margin: 10px 0;
+      color: var(--primary);
+    }
+
+    .fireworks {
+      width: min(300px, 80vw);
+      margin: 0 auto;
+      display: block;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    button {
+      padding: 12px 25px;
+      font-size: 1.2rem;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    #yesBtn {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    #noBtn {
+      background-color: #ccc;
+      color: #555;
+      position: relative; /* Essential for the runaway logic */
+      z-index: 1000;
+    }
+
+    .hint {
+      margin-top: 15px;
+      font-size: 0.9rem;
+      color: #888;
+      font-style: italic;
+    }
+
+    @keyframes pop {
+      from { transform: scale(.96); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="confettiCanvas"></canvas>
+
+  <main class="card">
+    <div id="interaction-zone">
+      <svg class="art" viewBox="0 0 320 240" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="160" cy="120" r="80" fill="#fbc3bc" />
+        <path d="M140 100 Q160 80 180 100" stroke="black" stroke-width="2" fill="none"/>
+        <circle cx="130" cy="110" r="5" fill="black" />
+        <circle cx="190" cy="110" r="5" fill="black" />
+        <path d="M160 140 Q160 160 140 160" stroke="#ff4d6d" stroke-width="4" fill="none" />
+        <text x="50%" y="220" text-anchor="middle" font-size="20" fill="#ff4d6d" font-weight="bold">Will you be mine?</text>
+      </svg>
+
+      <div class="btn-group">
+        <button id="yesBtn">Yes</button>
+        <button id="noBtn">No</button>
+      </div>
+      <div class="hint" id="hint">“No” seems a bit shy 😈</div>
+    </div>
+
+    <section class="result" id="result">
+      <h2>Yay! ❤️</h2>
+      <p>I knew you'd say yes!</p>
+      <div class="fireworks">🎉✨💖</div>
+    </section>
+  </main>
+
+  <script>
+    const yesBtn = document.getElementById("yesBtn");
+    const noBtn = document.getElementById("noBtn");
+    const zone = document.getElementById("interaction-zone");
+    const result = document.getElementById("result");
+    const hint = document.getElementById("hint");
+    const confettiCanvas = document.getElementById("confettiCanvas");
+    const ctx = confettiCanvas.getContext("2d");
+
+    /* ---------- RUNAWAY NO BUTTON ---------- */
+    noBtn.addEventListener("mouseover", () => {
+      // Random coordinates that keep the button on the screen
+      const x = Math.random() * (window.innerWidth - noBtn.offsetWidth);
+      const y = Math.random() * (window.innerHeight - noBtn.offsetHeight);
+      
+      noBtn.style.position = "fixed";
+      noBtn.style.left = `${x}px`;
+      noBtn.style.top = `${y}px`;
+    });
+
+    /* ---------- YES CLICK ---------- */
+    yesBtn.addEventListener("click", () => {
+      zone.style.display = "none";
+      hint.style.display = "none";
+      result.style.display = "block";
+      initConfetti();
+    });
+
+    /* ---------- SIMPLE CONFETTI EFFECT ---------- */
+    let particles = [];
+    function initConfetti() {
+      resizeCanvas();
+      for (let i = 0; i < 100; i++) {
+        particles.push({
+          x: Math.random() * confettiCanvas.width,
+          y: Math.random() * confettiCanvas.height - confettiCanvas.height,
+          size: Math.random() * 7 + 3,
+          color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+          velocity: Math.random() * 3 + 2
+        });
+      }
+      animate();
+    }
+
+    function resizeCanvas() {
+      confettiCanvas.width = window.innerWidth;
+      confettiCanvas.height = window.innerHeight;
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+      particles.forEach(p => {
+        p.y += p.velocity;
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x, p.y, p.size, p.size);
+      });
+      requestAnimationFrame(animate);
+    }
+
+    window.addEventListener("resize", resizeCanvas);
+  </script>
+</body>
+</html>
